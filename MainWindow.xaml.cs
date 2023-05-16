@@ -1,9 +1,11 @@
 ﻿using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -24,16 +26,24 @@ namespace ScriptVsNewWindow
 
         private bool enableLog = true;
 
+        private int newWindowTop;
+        private int newWindowLeft;
+
+        private ConcurrentDictionary<CoreWebView2DevToolsProtocolEventReceiver, CoreWebView2> eventReceiverToWebViewMap = new();
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public MainWindow()
         {
             InitializeComponent();
 
+            this.Top = 0;
+            this.Left = 1100;
+
             var executablePath = GetCanaryWebViewPathIfAvailable();
             this.webView2CreationProperties = new CoreWebView2CreationProperties()
             {
-                AdditionalBrowserArguments = "--auto-open-devtools-for-tabs",
+                //AdditionalBrowserArguments = "--auto-open-devtools-for-tabs",
             };
             if (executablePath != null)
             {
@@ -91,7 +101,10 @@ namespace ScriptVsNewWindow
 
         private void CoreWebView2_NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
         {
-            this.enableLog = true;
+            if (sender is CoreWebView2 webView)
+            {
+                LogEvent($"NavigationCompleted - '{webView.Source}'");
+            }
         }
 
         private async void CoreWebView2_NewWindowRequested(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2NewWindowRequestedEventArgs e)
@@ -112,6 +125,25 @@ namespace ScriptVsNewWindow
             else
             {
                 await OpenNewWindowAsync(e, _deferral);
+            }
+        }
+
+        public async Task StartDevToolsProtocolEvents(CoreWebView2 webView, string eventName, string method, string parameters)
+        {
+            var receiver = webView.GetDevToolsProtocolEventReceiver(eventName);
+            receiver.DevToolsProtocolEventReceived += CoreWebView2_DevToolsProtocolEventReceived;
+            await webView.CallDevToolsProtocolMethodAsync(method, parameters);
+            eventReceiverToWebViewMap[receiver] = webView;
+        }
+
+        public void CoreWebView2_DevToolsProtocolEventReceived(object? sender, CoreWebView2DevToolsProtocolEventReceivedEventArgs e)
+        {
+            if (sender is CoreWebView2DevToolsProtocolEventReceiver receiver)
+            {
+                if (eventReceiverToWebViewMap.TryGetValue(receiver, out var webView))
+                {
+                    webView.CallDevToolsProtocolMethodAsync("Fetch.continueRequest", e.ParameterObjectAsJson);
+                }
             }
         }
 
@@ -138,16 +170,22 @@ namespace ScriptVsNewWindow
 
         private async Task OpenNewWindowAsync(CoreWebView2NewWindowRequestedEventArgs e, CoreWebView2Deferral deferral)
         {
+            this.newWindowLeft += 20;
+            this.newWindowTop += 20;
+
             Window window = new Window
             {
                 Width = Width,
                 Height = Height,
-                Left = Left + 100,
-                Top = Top + 100
+                Left = this.newWindowLeft,
+                Top = this.newWindowTop
             };
+
             var newWebView = new WebView2();
             newWebView.CreationProperties = this.webView2CreationProperties;
 
+            window.Owner = this;
+            window.WindowStyle = WindowStyle.None;
             window.Content = newWebView;
             window.Show();
 
@@ -158,7 +196,7 @@ namespace ScriptVsNewWindow
             newWebView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
             newWebView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
             newWebView.CoreWebView2.ContentLoading += CoreWebView2_ContentLoading;
-
+            
             if (this.SetScripts.SelectedIndex == 1)
             {
                 LogEvent($"Start Loading Scripts");
@@ -196,6 +234,12 @@ namespace ScriptVsNewWindow
                 newWebView.Source = new Uri(e.Uri);
                 LogEvent($"Set Source - '{e.Uri}'");
             }
+
+            await StartDevToolsProtocolEvents(
+                newWebView.CoreWebView2,
+                "Fetch.requestPaused",
+                "Fetch.enable",
+                "{\"patterns\":[{\"requestStage\":\"Request\"},{\"requestStage\":\"Response\"}]}");
 
             e.Handled = true;
             deferral.Complete();

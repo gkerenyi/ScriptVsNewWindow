@@ -39,7 +39,7 @@
                 <ComboBox x:Name="Delay"
                           Margin="0,4,4,4"
                           VerticalAlignment="Center"
-                          SelectedIndex="3">
+                          SelectedIndex="0">
                     <ComboBoxItem>None</ComboBoxItem>
                     <ComboBoxItem>1000</ComboBoxItem>
                     <ComboBoxItem>2000</ComboBoxItem>
@@ -55,7 +55,7 @@
                       Margin="4"
                       VerticalAlignment="Center"
                       Content="Schedule New Window"
-                      IsChecked="False" />
+                      IsChecked="True" />
             <Button x:Name="CopyLog"
                     Margin="4"
                     Padding="8,2"
