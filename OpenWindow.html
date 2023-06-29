@@ -9,7 +9,7 @@
         console.log(window['TESTDATA'])
 
         function openWindow() {
-            openedWindow = window.open('https://privacy-test-pages.glitch.me/privacy-protections/request-blocking/')
+            openedWindow = window.open('https://www.duckduckgo.com/')
             console.log('window opened')
             console.log(openedWindow['TESTDATA'])
         }
@@ -19,7 +19,7 @@
             newWindow.console.log('!!! document is being updated by parent window !!!')
             let button = newWindow.document.createElement('button');
             button.id = 'new-tab-button'
-            button.onclick = function () { window.open('https://privacy-test-pages.glitch.me/privacy-protections/request-blocking/'); };
+            button.onclick = function () { window.open('https://www.duckduckgo.com/'); };
             button.textContent = "Open Tab1"
             newWindow.document.body.appendChild(button);
             let div = newWindow.document.createElement('div');
@@ -35,7 +35,7 @@
     <h1>hello world</h1>
     <p><button onclick="openWindow()">Open Window From Javascript (GET)</button></p>
     <p><button onclick="openNewWithJSOnly()">Open Window From Javascript without navigation</button></p>
-    <p><a target="_blank" href="https://privacy-test-pages.glitch.me/privacy-protections/request-blocking/">Open Window From Target="_blank" (GET)</a></p>
+    <p><a target="_blank" href="https://www.duckduckgo.com/">Open Window From Target="_blank" (GET)</a></p>
     <p><a target="_blank" href="https://random.test.url/">Start open window test with POST navigation</a></p>
 </body>
 </html>

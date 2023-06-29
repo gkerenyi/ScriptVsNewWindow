@@ -29,8 +29,6 @@ namespace ScriptVsNewWindow
         private int newWindowTop;
         private int newWindowLeft;
 
-        private ConcurrentDictionary<CoreWebView2DevToolsProtocolEventReceiver, CoreWebView2> eventReceiverToWebViewMap = new();
-
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public MainWindow()
@@ -43,7 +41,7 @@ namespace ScriptVsNewWindow
             var executablePath = GetCanaryWebViewPathIfAvailable();
             this.webView2CreationProperties = new CoreWebView2CreationProperties()
             {
-                //AdditionalBrowserArguments = "--auto-open-devtools-for-tabs",
+                AdditionalBrowserArguments = "--auto-open-devtools-for-tabs",
             };
             if (executablePath != null)
             {
@@ -128,25 +126,6 @@ namespace ScriptVsNewWindow
             }
         }
 
-        public async Task StartDevToolsProtocolEvents(CoreWebView2 webView, string eventName, string method, string parameters)
-        {
-            var receiver = webView.GetDevToolsProtocolEventReceiver(eventName);
-            receiver.DevToolsProtocolEventReceived += CoreWebView2_DevToolsProtocolEventReceived;
-            await webView.CallDevToolsProtocolMethodAsync(method, parameters);
-            eventReceiverToWebViewMap[receiver] = webView;
-        }
-
-        public void CoreWebView2_DevToolsProtocolEventReceived(object? sender, CoreWebView2DevToolsProtocolEventReceivedEventArgs e)
-        {
-            if (sender is CoreWebView2DevToolsProtocolEventReceiver receiver)
-            {
-                if (eventReceiverToWebViewMap.TryGetValue(receiver, out var webView))
-                {
-                    webView.CallDevToolsProtocolMethodAsync("Fetch.continueRequest", e.ParameterObjectAsJson);
-                }
-            }
-        }
-
         private void StartPostNavigationTest()
         {
             this.WebView.CoreWebView2.DOMContentLoaded += CoreWebView2_DOMContentLoaded;
@@ -160,7 +139,6 @@ namespace ScriptVsNewWindow
                     if (window.location.href === 'https://lite.duckduckgo.com/lite') {
                         const form = document.getElementsByTagName('form')[0]
                         form.setAttribute('target', '_blank')
-                        form.setAttribute('rel', 'opener')
                         document.querySelectorAll('input[class="query"]')[0].value = 'test'
                         form.submit()
                     }
@@ -185,7 +163,6 @@ namespace ScriptVsNewWindow
             newWebView.CreationProperties = this.webView2CreationProperties;
 
             window.Owner = this;
-            window.WindowStyle = WindowStyle.None;
             window.Content = newWebView;
             window.Show();
 
@@ -234,12 +211,6 @@ namespace ScriptVsNewWindow
                 newWebView.Source = new Uri(e.Uri);
                 LogEvent($"Set Source - '{e.Uri}'");
             }
-
-            await StartDevToolsProtocolEvents(
-                newWebView.CoreWebView2,
-                "Fetch.requestPaused",
-                "Fetch.enable",
-                "{\"patterns\":[{\"requestStage\":\"Request\"},{\"requestStage\":\"Response\"}]}");
 
             e.Handled = true;
             deferral.Complete();
