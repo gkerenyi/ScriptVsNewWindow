@@ -8,6 +8,9 @@ The project loads an embedded web page with buttons and links. When any of them 
   1. Has scripts added (via a call to `CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync`).
   2. This can be verified using the automatically opened DevTools window that should show the "script injected - before setting NewWindow" line in the console.
 
+Script injection is expected to work with any value of the `rel` attribute of the `<a>` and `<form>` elements used to open the new window.
+I.e., it must not be required to set `rel="noopener"`.
+
 ## Case 1: Open Window From Javascript
 The new window should display the DuckDuckGo search page.
 
