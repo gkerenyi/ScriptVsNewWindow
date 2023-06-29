@@ -18,44 +18,6 @@
             <RowDefinition Height="0.3*" />
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal">
-            <CheckBox x:Name="SetNewWindow"
-                      Margin="4"
-                      VerticalAlignment="Center"
-                      Content="Set NewWindow"
-                      IsChecked="True" />
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Margin="4" VerticalAlignment="Center" Text="Add Scripts:" />
-                <ComboBox x:Name="SetScripts"
-                          Margin="0,4,4,4"
-                          VerticalAlignment="Center"
-                          SelectedIndex="0">
-                    <ComboBoxItem>After</ComboBoxItem>
-                    <ComboBoxItem IsSelected="True">Before</ComboBoxItem>
-                    <ComboBoxItem>None</ComboBoxItem>
-                </ComboBox>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Margin="4" VerticalAlignment="Center" Text="Delay:" />
-                <ComboBox x:Name="Delay"
-                          Margin="0,4,4,4"
-                          VerticalAlignment="Center"
-                          SelectedIndex="0">
-                    <ComboBoxItem>None</ComboBoxItem>
-                    <ComboBoxItem>1000</ComboBoxItem>
-                    <ComboBoxItem>2000</ComboBoxItem>
-                    <ComboBoxItem>3000</ComboBoxItem>
-                </ComboBox>
-            </StackPanel>
-            <CheckBox x:Name="SetSource"
-                      Margin="4"
-                      VerticalAlignment="Center"
-                      Content="Set Source"
-                      IsChecked="False" />
-            <CheckBox x:Name="ScheduleNewWindow"
-                      Margin="4"
-                      VerticalAlignment="Center"
-                      Content="Schedule New Window"
-                      IsChecked="True" />
             <Button x:Name="CopyLog"
                     Margin="4"
                     Padding="8,2"

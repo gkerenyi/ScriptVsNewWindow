@@ -105,7 +105,7 @@ namespace ScriptVsNewWindow
             }
         }
 
-        private async void CoreWebView2_NewWindowRequested(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2NewWindowRequestedEventArgs e)
+        private void CoreWebView2_NewWindowRequested(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2NewWindowRequestedEventArgs e)
         {
             if (e.Uri == "https://random.test.url/")
             {
@@ -116,14 +116,7 @@ namespace ScriptVsNewWindow
 
             var _deferral = e.GetDeferral();
 
-            if (this.ScheduleNewWindow.IsChecked == true)
-            {
-                _ = Dispatcher.InvokeAsync(() => OpenNewWindowAsync(e, _deferral));
-            }
-            else
-            {
-                await OpenNewWindowAsync(e, _deferral);
-            }
+            _ = Dispatcher.InvokeAsync(() => OpenNewWindowAsync(e, _deferral));
         }
 
         private void StartPostNavigationTest()
@@ -174,43 +167,13 @@ namespace ScriptVsNewWindow
             newWebView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
             newWebView.CoreWebView2.ContentLoading += CoreWebView2_ContentLoading;
             
-            if (this.SetScripts.SelectedIndex == 1)
-            {
-                LogEvent($"Start Loading Scripts");
-                await newWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync("console.log('script injected - before setting NewWindow')");
-                if (this.Delay.SelectedIndex > 0)
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(1000 * this.Delay.SelectedIndex));
-                }
-                LogEvent($"Completed Loading Scripts");
-            }
+            LogEvent($"Start Loading Scripts");
+            await newWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync("console.log('script injected - before setting NewWindow')");
+            LogEvent($"Completed Loading Scripts");
 
-
-            if (this.SetNewWindow.IsChecked == true)
-            {
-                LogEvent($"Assigning NewWindow");
-                e.NewWindow = newWebView.CoreWebView2;
-                LogEvent($"Assigned NewWindow");
-            }
-
-
-            if (this.SetScripts.SelectedIndex == 0)
-            {
-                LogEvent($"Start Loading Scripts");
-                await newWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync("console.log('script injected - after setting NewWindow')");
-                if (this.Delay.SelectedIndex > 0)
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(1000 * this.Delay.SelectedIndex));
-                }
-                LogEvent($"Completed Loading Scripts");
-            }
-
-            if (this.SetSource.IsChecked == true)
-            {
-                LogEvent($"Setting Source - '{e.Uri}'");
-                newWebView.Source = new Uri(e.Uri);
-                LogEvent($"Set Source - '{e.Uri}'");
-            }
+            LogEvent($"Assigning NewWindow");
+            e.NewWindow = newWebView.CoreWebView2;
+            LogEvent($"Assigned NewWindow");
 
             e.Handled = true;
             deferral.Complete();
